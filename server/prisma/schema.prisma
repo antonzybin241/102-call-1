@@ -1,0 +1,151 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String    @id @default(uuid())
+  walletAddress  String?   @unique @map("wallet_address")
+  email          String?   @unique
+  passwordHash   String?   @map("password_hash")
+  firstName      String?   @map("first_name")
+  lastName       String?   @map("last_name")
+  role           String    @default("user")
+  isActive       Boolean   @default(true) @map("is_active")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  accounts     Account[]
+  budgets      Budget[]
+  loans        Loan[]
+}
+
+model Account {
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  institutionName String  @map("institution_name")
+  accountName    String?  @map("account_name")
+  accountType    String?  @map("account_type")
+  mask           String?
+  currentBalance Float    @default(0) @map("current_balance")
+  isActive       Boolean  @default(true) @map("is_active")
+  linkedAt       DateTime @default(now()) @map("linked_at")
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@index([userId])
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  accountId   String   @map("account_id")
+  amount      Float    @default(0)
+  date        DateTime
+  name        String?
+  merchantName String?  @map("merchant_name")
+  category    String?
+  subcategory String?
+  notes       String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
+  @@index([date])
+  @@index([category])
+}
+
+model Budget {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  name      String
+  category  String
+  amount    Float    @default(0)
+  period    String   @default("monthly")
+  startDate DateTime @map("start_date")
+  endDate   DateTime? @map("end_date")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model CategorizationFeedback {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  transactionId   String?  @map("transaction_id")
+  merchantName    String   @map("merchant_name")
+  amount          Float    @default(0)
+  description     String?
+  originalCategory String? @map("original_category")
+  userCategory    String   @map("user_category")
+  userSubcategory String?  @map("user_subcategory")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([transactionId])
+  @@index([merchantName])
+}
+
+model FraudSignal {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  signalType  String   @map("signal_type")
+  severity    String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+}
+
+model LoanEligibilityResult {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  riskScore       Int      @map("risk_score")
+  decision        String
+  reasonCodes     String   @map("reason_codes")
+  factors         String
+  recommendedLimit Float?   @map("recommended_limit")
+  modelVersion    String   @map("model_version")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+}
+
+model AuditLog {
+  id            String   @id @default(uuid())
+  userId        String?  @map("user_id")
+  action        String
+  resourceType  String?  @map("resource_type")
+  resourceId    String?  @map("resource_id")
+  details       String?
+  ipAddress     String?  @map("ip_address")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Loan {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  amount          Float    @default(0)
+  interestRatePct Float    @map("interest_rate_pct")
+  termMonths      Int      @map("term_months")
+  monthlyPayment  Float    @map("monthly_payment")
+  status          String   @default("pending")
+  appliedAt       DateTime @default(now()) @map("applied_at")
+  approvedAt      DateTime? @map("approved_at")
+  disbursedAt     DateTime? @map("disbursed_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}

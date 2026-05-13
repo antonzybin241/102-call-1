@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply antialiased bg-white dark:bg-surface-900 text-surface-900 dark:text-surface-100;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}

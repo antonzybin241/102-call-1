@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Environment
+.env
+
+# Local PostgreSQL data (when using docker compose)
+.env.local
+.env.*.local
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+
+# Logs
+*.log
+npm-debug.log*
+wget-log
+
+# OS
+.DS_Store
+Thumbs.db
